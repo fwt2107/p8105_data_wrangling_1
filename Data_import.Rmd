@@ -1,5 +1,5 @@
 ---
-title: "Data_import"
+title: "Data Wrangling Lecture 1"
 author: "Felix Tran"
 date: "September 18, 2018"
 output: html_document
@@ -7,11 +7,49 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
 ```
 
+## Importing FAS datasets
 
+Filepaths for R. There are 2 ways to use them to import:
 
+1. Absolute path -- Full address/pathfile for a file on a computer
+
+2. Relative path -- Directions from your current destination to your file
+
+Relative paths are better. Absolute paths only work on the specific computer
+you use it on. Absolute paths also break when you move folders/files/etc. 
+Relative paths work even when things change.
+
+This is also a benefit of using Rprojects. Using an Rproject sets the working
+directory to your Rproject. As long as you keep all your files in the Rproject,
+you can open the Rproject anywhere and your relative paths for importing data
+still work.
+
+## Import FAS csv file
+Import the FAS dataset
 ```{r}
+litters_data <- read_csv('./data/FAS_litters.csv')
+```
 
+Look at column names
+```{r}
+names(litters_data)
+```
+
+R doesn't handle variable names with spaces/special symbols well. We will clean
+them using the clean_names function from the janitor package.
+```{r}
+litters_data <- janitor::clean_names(litters_data)
+names(litters_data)
+```
+
+Also read in the pups dataset and clean the variable names
+```{r}
+pups_data <- read_csv('./data/FAS_pups.csv')
+names(pups_data)
+pups_data <- janitor::clean_names(pups_data)
+names(pups_data)
 ```
 
