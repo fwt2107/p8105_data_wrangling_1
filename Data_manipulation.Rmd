@@ -1,0 +1,20 @@
+---
+title: "Data_manipulation"
+author: "Felix Tran"
+date: "September 20, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Tidyverse loads dplyr automatically
+```{r}
+library('tidyverse')
+litters_data <- read_csv('./data/FAS_litters.csv')
+pups_data <- read_csv('./data/FAS_pups.csv')
+litters_data <- janitor::clean_names(litters_data)
+pups_data <- janitor::clean_names(pups_data)
+```
+
