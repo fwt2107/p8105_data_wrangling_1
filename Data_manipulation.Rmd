@@ -7,14 +7,79 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-```
-
-Tidyverse loads dplyr automatically
-```{r}
 library('tidyverse')
 litters_data <- read_csv('./data/FAS_litters.csv')
 pups_data <- read_csv('./data/FAS_pups.csv')
 litters_data <- janitor::clean_names(litters_data)
 pups_data <- janitor::clean_names(pups_data)
 ```
+
+## Select()
+
+select() tells R to only keep the columns you want in the dataframe
+```{r}
+select(litters_data, litter_number, gd0_weight, pups_survive)
+select(litters_data, gd_of_birth:pups_survive)
+```
+
+can also specify what you don't want to keep
+```{r}
+select(litters_data, -litter_number)
+```
+
+can also change col names in select() function. Alternatively can use rename()
+function
+```{r}
+select(litters_data, group, litter_number, gest_day_0_weight = gd0_weight)
+rename(litters_data, group_number = group)
+```
+
+select helpers i.e. everything() lets you choose var order by specifying 
+variables in order, then call everything() to automatically select remaining
+variables. For more of these search ?select_helpers
+```{r}
+select(litters_data, starts_with('gd'))
+select(litters_data, litter_number, everything())
+```
+
+## Filtering observations
+We can use logical operators like < > == != to filter observations
+Using the filter() function makes things neat
+Can use the filter() on multiple conditions with , (looks neater than & imo)
+```{r}
+filter(litters_data, gd0_weight < 25)
+filter(litters_data, gd0_weight >= 25)
+filter(litters_data, pups_born_alive == 8)
+filter(litters_data, is.na(gd0_weight))
+filter(litters_data, !is.na(gd0_weight))
+filter(litters_data, group == "Low7" | group == "Low8")
+filter(litters_data, group %in% c("Low7", "Low8"))
+filter(litters_data, pups_born_alive %in% c(4,6,7), !is.na(gd0_weight))
+```
+
+
+## Mutate
+Create variables. Can also do multiple operations in same function call.
+Can do operations on a newly created variable in same function call.
+```{r}
+mutate(litters_data,
+       wt_gain = gd18_weight - gd0_weight,
+       group = tolower(group))
+mutate(litters_data,
+       wt_gain = gd18_weight - gd0_weight,
+       wt_gain_squared = wt_gain * wt_gain)
+```
+
+
+## Arrange
+
+arrange() sorts dataset by variable. Can sort on multiple variables
+```{r}
+arrange(litters_data, gd0_weight)
+arrange(litters_data, pups_born_alive, gd0_weight)
+arrange(litters_data, desc(pups_born_alive), gd0_weight)
+```
+
+
+
 
