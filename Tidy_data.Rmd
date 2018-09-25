@@ -10,3 +10,131 @@ knitr::opts_chunk$set(echo = TRUE)
 library('tidyverse')
 ```
 
+## Tidy data
+"long" data. One line = 1 observation.
+
+Each column is 1 variable. It can be easy to combine information into 1 variable,
+so we have to clean it.
+
+## Import pulse dataset
+```{r}
+pulse_data <- haven::read_sas('./data/public_pulse_data.sas7bdat') %>% 
+janitor::clean_names()
+pulse_data
+```
+
+Not tidy yet
+
+Use the gather() function
+```{r}
+pulse_data_tidy  <-
+  gather(pulse_data, key = 'visit', value = bdi, bdi_score_bl:bdi_score_12m) 
+pulse_data_tidy
+```
+
+Illustrate separate() function. Illustrates how we can separate the values of
+visit into 3 variables (sep by the _), then remove 2 of the unneeded ones to
+be left with just the info we need. 
+```{r}
+pulse_data_tidy <- 
+  pulse_data_tidy %>%  
+  separate(visit, into = c("bdi_str", "score_str", "visit"), sep = "_") %>% 
+  select(-bdi_str, -score_str) %>% 
+  mutate(visit = replace(visit, visit == "bl", "00m"))
+pulse_data_tidy
+```
+
+## Exercise with litters data
+
+```{r}
+litters_data <-
+  read_csv('./data/FAS_litters.csv', col_types = 'ccddiiii') %>% 
+  janitor::clean_names()
+litters_data
+
+litters_data <-
+  litters_data %>% 
+  gather(key = 'gest_day', value = 'weight', gd0_weight:gd18_weight) %>% 
+  select(litter_number, gest_day, weight) %>%  
+  arrange(litter_number) %>% 
+  mutate(gest_day = recode(gest_day, "gd0_weight" = 0, "gd18_weight" = 18))
+litters_data
+
+```
+
+
+## Spread
+
+Reverse function of gather(). Takes tidy data for R and transforms it into 
+wide format data for human readibility.
+
+The kable() function in the knitr package formats dataframe 2X2 into a neat
+looking table for readibility.
+
+```{r}
+analysis_result = tibble(
+  group = c("treatment", "treatment", "placebo", "placebo"),
+  time = c("pre", "post", "pre", 'post'),
+  mean = c(4, 8, 3.5, 4)
+)
+
+analysis_result
+
+analysis_spread <-
+  analysis_result %>% 
+  spread(key = time, value = mean) %>% 
+  knitr::kable()
+analysis_spread
+```
+
+## Lord of the rings example
+Read in the 3 tables 
+```{r}
+fellowship <- readxl::read_excel('./data/LotR_Words.xlsx', range = "B3:D6") %>% 
+  mutate(movie = "fellowship_ring")
+fellowship
+
+towers <- readxl::read_excel('./data/LotR_Words.xlsx', range = "F3:H6") %>% 
+  mutate(movie = "two_towers")
+towers
+
+king <- readxl::read_excel('./data/LotR_Words.xlsx', range = "J3:L6") %>% 
+  mutate(movie = "return_king")
+king
+
+lotr <- bind_rows(fellowship, towers, king)
+lotr
+```
+
+Not clean yet. Female and male should be recoded with a "gender" variable and then
+a "word count" variable.
+```{r}
+lotr <-
+  lotr %>% 
+  gather(key = sex, value = word, Female:Male)
+
+lotr
+```
+
+
+## Joining datasets
+Using the left_join() function.
+
+For clarity, joining the datasets is a separate step from reading in/modifying 
+the individual datasets.
+```{r}
+pup_data = read_csv("./data/FAS_pups.csv", col_types = "ciiiii") %>%
+  janitor::clean_names() %>%
+  mutate(sex = recode(sex, `1` = "male", `2` = "female")) 
+
+litter_data = read_csv("./data/FAS_litters.csv", col_types = "ccddiiii") %>%
+  janitor::clean_names() %>%
+  select(-pups_survive) %>%
+  mutate(
+    wt_gain = gd18_weight - gd0_weight,
+    group = tolower(group))
+
+fas_data = left_join(pup_data, litter_data, by = "litter_number")
+fas_data
+```
+
